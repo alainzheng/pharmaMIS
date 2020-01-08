@@ -9,51 +9,52 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
+import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
-import ulb.lisa.infoh400.labs2020.model.Patient;
+import ulb.lisa.infoh400.labs2020.model.Doctor;
 
 /**
  *
  * @author Adrien Foucart
  */
-public class AddPatientWindow extends javax.swing.JFrame {
+public class AddDoctorWindow extends javax.swing.JFrame {
+    
+    
     private final EntityManagerFactory emfac = Persistence.createEntityManagerFactory("infoh400_PU");
-    private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
+    private final DoctorJpaController doctorCtrl = new DoctorJpaController(emfac);
     private final PersonJpaController personCtrl = new PersonJpaController(emfac);
     
-    private Patient patient = null;
-    
+    private Doctor doctor = null;
     /**
-     * Creates new form AddPatientWindow
+     * Creates new form AddDoctorWindow
      */
-    public AddPatientWindow() {
+    public AddDoctorWindow() {
         initComponents();
     }
     
-    public void setPatient(Patient patient){
-        this.patient = patient;
+    public void setDoctor(Doctor doctor){
+        this.doctor = doctor;
         
-        addPersonPanel.setPerson(patient.getIdperson());
-        phonenumberTextField.setText(patient.getPhonenumber());
-        statusComboBox.setSelectedItem(patient.getStatus());
+        addPersonPanel.setPerson(doctor.getIdperson());
+        inamiTextField.setText(doctor.getInami());
+        specialtyTextField.setText(doctor.getSpecialty());
     }
     
-    public Patient getPatient(){
-        updatePatient();
+    public Doctor getDoctor(){
+        updateDoctor();
                 
-        return patient;
+        return doctor;
     }
     
-    public void updatePatient(){
-        if( patient == null ){
-            patient = new Patient();
+    public void updateDoctor(){
+        if( doctor == null ){
+            doctor = new Doctor();
         }
         
-        patient.setIdperson(addPersonPanel.getPerson());
-        patient.setPhonenumber(phonenumberTextField.getText());
-        patient.setStatus((String) statusComboBox.getSelectedItem());
+        doctor.setIdperson(addPersonPanel.getPerson());
+        doctor.setInami(inamiTextField.getText());
+        doctor.setSpecialty(specialtyTextField.getText());
     }
 
     /**
@@ -68,19 +69,21 @@ public class AddPatientWindow extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         addPersonPanel = new ulb.lisa.infoh400.labs2020.view.AddPersonPanel();
         jLabel2 = new javax.swing.JLabel();
-        phonenumberTextField = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        inamiTextField = new javax.swing.JTextField();
+        specialtyTextField = new javax.swing.JTextField();
         saveButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        statusComboBox = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Add Patient");
+        jLabel1.setText("Add Doctor");
 
-        jLabel2.setText("Phone Number:");
+        jLabel2.setText("Inami:");
+
+        jLabel3.setText("Specialty:");
 
         saveButton.setText("Save");
         saveButton.addActionListener(new java.awt.event.ActionListener() {
@@ -96,56 +99,51 @@ public class AddPatientWindow extends javax.swing.JFrame {
             }
         });
 
-        jLabel3.setText("Status:");
-
-        statusComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Active", "Inactive", "Banned" }));
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(addPersonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(addPersonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(20, 20, 20)
+                        .addGap(10, 10, 10)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(phonenumberTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3))
+                                .addGap(34, 34, 34)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(specialtyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(inamiTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(saveButton)
                                 .addGap(18, 18, 18)
-                                .addComponent(cancelButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(40, 40, 40)
-                                .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(cancelButton)))))
                 .addContainerGap(178, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(addPersonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(phonenumberTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(inamiTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(specialtyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveButton)
                     .addComponent(cancelButton))
-                .addGap(0, 5, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -156,42 +154,42 @@ public class AddPatientWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
-        updatePatient();
+        updateDoctor();
 
         // Create person if necessary:
-        if( patient.getIdperson().getIdperson() == null ){
-            personCtrl.create(patient.getIdperson());           
+        if( doctor.getIdperson().getIdperson() == null ){
+            personCtrl.create(doctor.getIdperson());           
         }
         // Create patient if necessary
-        if( patient.getIdpatient() == null ){
-            patientCtrl.create(patient);
+        if( doctor.getIddoctor() == null ){
+            doctorCtrl.create(doctor);
         }
         // Link back patient to person if necessary
-        if( patient.getIdperson().getIdpatient() == null ){
-            patient.getIdperson().setIdpatient(patient);
+        if( doctor.getIdperson().getIddoctor() == null ){
+            doctor.getIdperson().setIddoctor(doctor);
         }
         
         // Save changes
         try {
-            personCtrl.edit(patient.getIdperson());
-            patientCtrl.edit(patient);
+            personCtrl.edit(doctor.getIdperson());
+            doctorCtrl.edit(doctor);
         } catch (NonexistentEntityException ex) {
-            Logger.getLogger(AddPatientWindow.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AddDoctorWindow.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(AddPatientWindow.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AddDoctorWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        this.dispose();        
+        this.dispose();   
     }//GEN-LAST:event_saveButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private ulb.lisa.infoh400.labs2020.view.AddPersonPanel addPersonPanel;
     private javax.swing.JButton cancelButton;
+    private javax.swing.JTextField inamiTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField phonenumberTextField;
     private javax.swing.JButton saveButton;
-    private javax.swing.JComboBox<String> statusComboBox;
+    private javax.swing.JTextField specialtyTextField;
     // End of variables declaration//GEN-END:variables
 }
