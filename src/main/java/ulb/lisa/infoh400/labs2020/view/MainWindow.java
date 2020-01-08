@@ -12,10 +12,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import ulb.lisa.infoh400.labs2020.controller.AppointmentJpaController;
 import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.IllegalOrphanException;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
+import ulb.lisa.infoh400.labs2020.model.Appointment;
 import ulb.lisa.infoh400.labs2020.model.Doctor;
 import ulb.lisa.infoh400.labs2020.model.Patient;
 
@@ -28,6 +30,7 @@ public class MainWindow extends javax.swing.JFrame {
     private final EntityManagerFactory emfac = Persistence.createEntityManagerFactory("infoh400_PU");
     private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
     private final DoctorJpaController doctorCtrl = new DoctorJpaController(emfac);
+    private final AppointmentJpaController appointmentCtrl = new AppointmentJpaController(emfac);
     
     /**
      * Creates new form MainWindow
@@ -130,7 +133,11 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
         listAppointmentsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_List_103471.png"))); // NOI18N
-        listAppointmentsButton.setEnabled(false);
+        listAppointmentsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                listAppointmentsButtonActionPerformed(evt);
+            }
+        });
 
         listImagesButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_List_103471.png"))); // NOI18N
         listImagesButton.setEnabled(false);
@@ -150,7 +157,6 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
         addAppointmentButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_add_3029252.png"))); // NOI18N
-        addAppointmentButton.setEnabled(false);
         addAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addAppointmentButtonActionPerformed(evt);
@@ -185,6 +191,11 @@ public class MainWindow extends javax.swing.JFrame {
 
         editAppointmentButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_edit_3029255.png"))); // NOI18N
         editAppointmentButton.setEnabled(false);
+        editAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editAppointmentButtonActionPerformed(evt);
+            }
+        });
 
         editImageButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_edit_3029255.png"))); // NOI18N
         editImageButton.setEnabled(false);
@@ -199,6 +210,11 @@ public class MainWindow extends javax.swing.JFrame {
 
         deleteAppointmentButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_Delete_756859.png"))); // NOI18N
         deleteAppointmentButton.setEnabled(false);
+        deleteAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteAppointmentButtonActionPerformed(evt);
+            }
+        });
 
         deleteDoctorButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_Delete_756859.png"))); // NOI18N
         deleteDoctorButton.setEnabled(false);
@@ -371,7 +387,15 @@ public class MainWindow extends javax.swing.JFrame {
      * @param evt 
      */
     private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
-        // TODO add your handling code here:
+        AddAppointmentWindow appointmentAddPopup = new AddAppointmentWindow();
+        appointmentAddPopup.setVisible(true);
+        
+        appointmentAddPopup.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent evt){
+                refreshAppointmentList();
+            }
+        });
     }//GEN-LAST:event_addAppointmentButtonActionPerformed
 
     /**
@@ -523,6 +547,56 @@ public class MainWindow extends javax.swing.JFrame {
         
         refreshDoctorList();
     }//GEN-LAST:event_deleteDoctorButtonActionPerformed
+
+    private void refreshAppointmentList() {
+        List appointments = appointmentCtrl.findAppointmentEntities();
+        EntityListModel<Appointment> model = new EntityListModel(appointments);
+        
+        itemsList.setModel(model);
+    }
+    
+    private void listAppointmentsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listAppointmentsButtonActionPerformed
+        refreshAppointmentList();
+        
+        disableButtons();
+        editAppointmentButton.setEnabled(true);
+        deleteAppointmentButton.setEnabled(true);
+    }//GEN-LAST:event_listAppointmentsButtonActionPerformed
+
+    private void editAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editAppointmentButtonActionPerformed
+        if( itemsList.getSelectedIndex() < 0 ){
+            return;
+        }
+        EntityListModel<Appointment> model = (EntityListModel) itemsList.getModel();
+        Appointment selected = model.getList().get(itemsList.getSelectedIndex());
+        
+        AddAppointmentWindow appointmentAddPopup = new AddAppointmentWindow();
+        appointmentAddPopup.setAppointment(selected);
+        appointmentAddPopup.setVisible(true);
+        
+        appointmentAddPopup.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent evt){
+                refreshAppointmentList();
+            }
+        });
+    }//GEN-LAST:event_editAppointmentButtonActionPerformed
+
+    private void deleteAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteAppointmentButtonActionPerformed
+        if( itemsList.getSelectedIndex() < 0 ){
+            return;
+        }
+        EntityListModel<Appointment> model = (EntityListModel) itemsList.getModel();
+        Appointment selected = model.getList().get(itemsList.getSelectedIndex());
+        
+        try {
+            appointmentCtrl.destroy(selected.getIdappointment());
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        refreshAppointmentList();
+    }//GEN-LAST:event_deleteAppointmentButtonActionPerformed
        
     /**
      * @param args the command line arguments

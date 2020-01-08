@@ -6,6 +6,7 @@
 package ulb.lisa.infoh400.labs2020.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
@@ -39,7 +40,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Appointment.findByAppointmenttime", query = "SELECT a FROM Appointment a WHERE a.appointmenttime = :appointmenttime"),
     @NamedQuery(name = "Appointment.findByPrice", query = "SELECT a FROM Appointment a WHERE a.price = :price")})
 public class Appointment implements Serializable {
-
+   
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -161,7 +162,8 @@ public class Appointment implements Serializable {
 
     @Override
     public String toString() {
-        return "ulb.lisa.infoh400.labs2020.model.Appointment[ idappointment=" + idappointment + " ]";
+        SimpleDateFormat dtFmt = new SimpleDateFormat("yyyy-MM-dd H:mm");
+        return dtFmt.format(appointmenttime) + " : " + idpatient.getIdperson().toString() + " (Dr " + iddoctor.getIdperson().toString() + ")";
     }
     
 }
