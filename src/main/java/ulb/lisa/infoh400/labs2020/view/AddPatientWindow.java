@@ -15,10 +15,11 @@ import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityExcepti
 import ulb.lisa.infoh400.labs2020.model.Patient;
 
 /**
- *
+ * Popup window with a form for adding & editing a Patient.
  * @author Adrien Foucart
  */
 public class AddPatientWindow extends javax.swing.JFrame {
+    // EntityManager & Controllers are needed to persist changes in the database.
     private final EntityManagerFactory emfac = Persistence.createEntityManagerFactory("infoh400_PU");
     private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
     private final PersonJpaController personCtrl = new PersonJpaController(emfac);
@@ -32,6 +33,10 @@ public class AddPatientWindow extends javax.swing.JFrame {
         initComponents();
     }
     
+    /**
+     * Set the current person & patient, & fill the form fields.
+     * @param patient 
+     */
     public void setPatient(Patient patient){
         this.patient = patient;
         
@@ -40,12 +45,19 @@ public class AddPatientWindow extends javax.swing.JFrame {
         statusComboBox.setSelectedItem(patient.getStatus());
     }
     
+    /**
+     * Read the from fields, update patient & get the Patient object.
+     * @return 
+     */
     public Patient getPatient(){
         updatePatient();
                 
         return patient;
     }
     
+    /**
+     * Update the Patient object according to the content of the form fields.
+     */
     public void updatePatient(){
         if( patient == null ){
             patient = new Patient();
@@ -150,28 +162,37 @@ public class AddPatientWindow extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    /**
+     * Close the window when the user clicks on the cancel button.
+     * @param evt 
+     */
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         this.dispose();
     }//GEN-LAST:event_cancelButtonActionPerformed
 
+    /**
+     * Save new or edited patient to the database.
+     * @param evt 
+     */
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        // Update Patient object from the form fields
         updatePatient();
 
         // Create person if necessary:
         if( patient.getIdperson().getIdperson() == null ){
             personCtrl.create(patient.getIdperson());           
         }
-        // Create patient if necessary
+        // Create patient if necessary:
         if( patient.getIdpatient() == null ){
             patientCtrl.create(patient);
         }
-        // Link back patient to person if necessary
+        // Link back patient to person if necessary:
         if( patient.getIdperson().getIdpatient() == null ){
             patient.getIdperson().setIdpatient(patient);
         }
         
-        // Save changes
+        // Save changes to person & patient.
         try {
             personCtrl.edit(patient.getIdperson());
             patientCtrl.edit(patient);

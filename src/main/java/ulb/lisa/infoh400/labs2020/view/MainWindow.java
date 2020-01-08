@@ -325,24 +325,43 @@ public class MainWindow extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    /**
+     * Callback for the addPatientButton. Creates a popup with the AddPatientWindow & make it visible.
+     * @param evt 
+     */
     private void addPatientButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPatientButtonActionPerformed
         AddPatientWindow patientAddPopup = new AddPatientWindow();
         patientAddPopup.setVisible(true);
     }//GEN-LAST:event_addPatientButtonActionPerformed
-
+    
+    /**
+     * Callback for the addDoctorButton.
+     * @param evt 
+     */
     private void addDoctorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addDoctorButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_addDoctorButtonActionPerformed
-
+    
+    /**
+     * Callback for the addAppointmentButton.
+     * @param evt 
+     */
     private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_addAppointmentButtonActionPerformed
 
+    /**
+     * Callback for the addImageButton.
+     * @param evt 
+     */
     private void addImageButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addImageButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_addImageButtonActionPerformed
     
+    /**
+     * Disable all buttons from the main interface.
+     */
     private void disableButtons(){
         editPatientButton.setEnabled(false);
         editDoctorButton.setEnabled(false);
@@ -355,6 +374,9 @@ public class MainWindow extends javax.swing.JFrame {
         deleteImageButton.setEnabled(false);
     }
     
+    /**
+     * Load all patients from the database & display in itemsList.
+     */
     private void refreshPatientList(){
         List patients = patientCtrl.findPatientEntities();
         EntityListModel<Patient> model = new EntityListModel(patients);
@@ -362,6 +384,10 @@ public class MainWindow extends javax.swing.JFrame {
         itemsList.setModel(model);
     }
     
+    /**
+     * Callback for the listPatientsButton. Refresh list & enable related buttons.
+     * @param evt 
+     */
     private void listPatientsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listPatientsButtonActionPerformed
         refreshPatientList();
         
@@ -370,6 +396,9 @@ public class MainWindow extends javax.swing.JFrame {
         deletePatientButton.setEnabled(true);
     }//GEN-LAST:event_listPatientsButtonActionPerformed
 
+    /**
+     * Load all doctors from the database & display in itemsList
+     */
     private void refreshDoctorList(){
         List doctors = doctorCtrl.findDoctorEntities();
         EntityListModel<Doctor> model = new EntityListModel(doctors);
@@ -377,6 +406,10 @@ public class MainWindow extends javax.swing.JFrame {
         itemsList.setModel(model);
     }
     
+    /**
+     * Callback for the listDoctorsButton. Refresh list & enable related buttons.
+     * @param evt 
+     */
     private void listDoctorsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listDoctorsButtonActionPerformed
         refreshDoctorList();
         
@@ -385,17 +418,24 @@ public class MainWindow extends javax.swing.JFrame {
         //deleteDoctorButton.setEnabled(true);
     }//GEN-LAST:event_listDoctorsButtonActionPerformed
 
+    /**
+     * Callback for the editPatientButton. Display AddPatientWindow as a popup with the form filled with the selected patient info.
+     * @param evt 
+     */
     private void editPatientButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editPatientButtonActionPerformed
+        // Select Patient from the itemsList
         if( itemsList.getSelectedIndex() < 0 ){
             return;
         }
         EntityListModel<Patient> model = (EntityListModel) itemsList.getModel();
         Patient selected = model.getList().get(itemsList.getSelectedIndex());
         
+        // Create AddPatientWindow and set patient info in form.
         AddPatientWindow patientAddPopup = new AddPatientWindow();
         patientAddPopup.setPatient(selected);
         patientAddPopup.setVisible(true);
         
+        // Add listener for the "window closed" event to refresh the patient list after the patient has been edited.
         patientAddPopup.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent evt){
@@ -404,13 +444,19 @@ public class MainWindow extends javax.swing.JFrame {
         });
     }//GEN-LAST:event_editPatientButtonActionPerformed
 
+    /**
+     * Callback for the deletePatientButton. Remove patient from database and refresh patient list.
+     * @param evt 
+     */
     private void deletePatientButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePatientButtonActionPerformed
+        // Select Patient from the itemslist
         if( itemsList.getSelectedIndex() < 0 ){
             return;
         }
         EntityListModel<Patient> model = (EntityListModel) itemsList.getModel();
         Patient selected = model.getList().get(itemsList.getSelectedIndex());
         
+        // Remove from database
         try {
             patientCtrl.destroy(selected.getIdpatient());
         } catch (IllegalOrphanException | NonexistentEntityException ex) {

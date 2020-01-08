@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import ulb.lisa.infoh400.labs2020.model.Person;
 
 /**
- *
+ * Reusable part of the interface for the "Person" class, which will be included into the Patient & Doctor forms.
  * @author Adrien Foucart
  */
 public class AddPersonPanel extends javax.swing.JPanel {
@@ -27,6 +27,10 @@ public class AddPersonPanel extends javax.swing.JPanel {
         initComponents();
     }
     
+    /**
+     * Set the current Person of the form & fill the fields.
+     * @param person 
+     */
     public void setPerson(Person person){
         this.person = person;
         
@@ -35,6 +39,10 @@ public class AddPersonPanel extends javax.swing.JPanel {
         dateofbirthTextField.setText(fmt.format(person.getDateofbirth()));
     }
     
+    /**
+     * Read the fields & modify the Person object. Note that this doesn't change the Person in the database !
+     * @return 
+     */
     public Person getPerson(){
         if( person == null ){
             person = new Person();
@@ -72,12 +80,6 @@ public class AddPersonPanel extends javax.swing.JPanel {
         jLabel2.setText("First Name:");
 
         jLabel3.setText("Date of Birth:");
-
-        familynameTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                familynameTextFieldActionPerformed(evt);
-            }
-        });
 
         dateofbirthTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("yyyy-MM-dd"))));
 
@@ -120,10 +122,6 @@ public class AddPersonPanel extends javax.swing.JPanel {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void familynameTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_familynameTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_familynameTextFieldActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
