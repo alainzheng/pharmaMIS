@@ -10,13 +10,19 @@ import java.util.List;
 import javax.swing.AbstractListModel;
 
 /**
- *
+ * ListModel for the jList in the main interface.
+ * Simple wrapper around the AbstractListModel using templates to be able to put Patients, Doctors, Appointments or Images in the list depending on the needs.
+ * T should be a class from the model package.
  * @author Adrien Foucart
  */
 public class EntityListModel<T> extends AbstractListModel {
     
     private List<T> entities;
     
+    /**
+     * Create model with a list of entities of class T or create an empty list if entities is null.
+     * @param entities 
+     */
     public EntityListModel(List<T> entities){
         if( entities == null ){
             entities = new ArrayList();
@@ -24,6 +30,10 @@ public class EntityListModel<T> extends AbstractListModel {
         this.entities = entities;
     }
     
+    /**
+     * Set the list of entities of class T
+     * @param entities 
+     */
     public void setList(List<T> entities){
         this.entities = entities;
     }
