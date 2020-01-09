@@ -164,7 +164,6 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
         addImageButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_add_3029252.png"))); // NOI18N
-        addImageButton.setEnabled(false);
         addImageButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addImageButtonActionPerformed(evt);
@@ -403,7 +402,8 @@ public class MainWindow extends javax.swing.JFrame {
      * @param evt 
      */
     private void addImageButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addImageButtonActionPerformed
-        // TODO add your handling code here:
+        OpenDICOMDIRWindow imageAddPopup = new OpenDICOMDIRWindow();
+        imageAddPopup.setVisible(true);
     }//GEN-LAST:event_addImageButtonActionPerformed
     
     /**
