@@ -11,7 +11,6 @@ import com.pixelmed.dicom.DicomDictionary;
 import com.pixelmed.dicom.DicomDirectory;
 import com.pixelmed.dicom.DicomDirectoryRecord;
 import com.pixelmed.dicom.DicomException;
-import com.pixelmed.dicom.SetOfDicomFiles;
 import com.pixelmed.dicom.TagFromName;
 import com.pixelmed.display.SourceImage;
 import com.pixelmed.network.StorageSOPClassSCU;
@@ -25,6 +24,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
@@ -239,7 +239,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     private boolean sendImageToPACS(File imageFile){
         // Send the file to the PACS
         try {
-            new StorageSOPClassSCU("localhost",4242,"ORTHANC","HIS",0,0,0,imageFile.getAbsolutePath(),null,null,0);
+            new StorageSOPClassSCU(GlobalConfig.ORTHANC_HOST,GlobalConfig.ORTHANC_PORT,GlobalConfig.ORTHANC_AET,"HIS",0,0,0,imageFile.getAbsolutePath(),null,null,0);
         }
         catch (Exception ex) {
             Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);

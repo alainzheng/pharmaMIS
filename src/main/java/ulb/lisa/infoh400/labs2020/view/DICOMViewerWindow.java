@@ -9,7 +9,6 @@ import com.pixelmed.dicom.AttributeList;
 import com.pixelmed.dicom.AttributeTag;
 import com.pixelmed.dicom.DicomDictionary;
 import com.pixelmed.dicom.DicomException;
-import com.pixelmed.dicom.TagFromName;
 import com.pixelmed.display.SourceImage;
 import java.io.File;
 import java.io.IOException;
