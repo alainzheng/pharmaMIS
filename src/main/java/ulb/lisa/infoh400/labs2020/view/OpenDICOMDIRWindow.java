@@ -23,11 +23,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileSystemView;
 import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
-import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
 import ulb.lisa.infoh400.labs2020.model.Image;
 import ulb.lisa.infoh400.labs2020.model.Patient;
 import ulb.lisa.infoh400.labs2020.model.Person;
@@ -45,7 +43,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     
     private String dicomdirpath = "";
     private DicomDirectory dicomdir = new DicomDirectory();
-    private SimpleDateFormat dicomDateFmt = new SimpleDateFormat("yyyyMMdd");
+    private final SimpleDateFormat dicomDateFmt = new SimpleDateFormat("yyyyMMdd");
     
     /**
      * Creates new form OpenDICOMDIRWindow
@@ -215,15 +213,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
                 patient.setIdperson(newPerson);
                 patient.setStatus("active");
                 patientCtrl.create(patient);
-                newPerson.setIdpatient(patient);
-                try {
-                    personCtrl.edit(newPerson);
-                } catch (NonexistentEntityException ex) {
-                    Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (Exception ex) {
-                    Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
+                
                 returnText += "Created new patient & person: " + patient;
             }
             else {
@@ -251,11 +241,12 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         
         AttributeList al = ddr.getAttributeList();
         if(al.get(TagFromName.DirectoryRecordType).getSingleStringValueOrEmptyString().equalsIgnoreCase("IMAGE")){
-            String path = "E:\\pCloud\\ULB\\TPs\\INFOH400\\Data\\DICOMDIR\\" + al.get(TagFromName.ReferencedFileID).getDelimitedStringValuesOrEmptyString();
+            String path = al.get(TagFromName.ReferencedFileID).getDelimitedStringValuesOrEmptyString();
+            File imageFile = new File(dicomdirpath, path);
             
             AttributeList list = new AttributeList();
             try {
-                list.read(path);
+                list.read(imageFile.getAbsolutePath());
                 
                 saveImageToDatabase(list);
             } catch (IOException | DicomException ex) {
@@ -276,7 +267,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     }
     
     private void selectDICOMDIRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectDICOMDIRButtonActionPerformed
-        JFileChooser jfc = new JFileChooser("E:\\pCloud\\ULB\\TPs\\INFOH400\\Data\\DICOMDIR");
+        JFileChooser jfc = new JFileChooser();
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int returnValue = jfc.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
