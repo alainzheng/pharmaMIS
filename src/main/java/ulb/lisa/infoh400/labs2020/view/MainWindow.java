@@ -5,8 +5,20 @@
  */
 package ulb.lisa.infoh400.labs2020.view;
 
+import com.pixelmed.dicom.Attribute;
+import com.pixelmed.dicom.AttributeList;
+import com.pixelmed.dicom.AttributeTag;
+import com.pixelmed.dicom.CodeStringAttribute;
+import com.pixelmed.dicom.DicomException;
+import com.pixelmed.dicom.SOPClass;
+import com.pixelmed.dicom.TagFromName;
+import com.pixelmed.dicom.UniqueIdentifierAttribute;
+import com.pixelmed.network.DicomNetworkException;
+import com.pixelmed.network.MoveSOPClassSCU;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +46,9 @@ public class MainWindow extends javax.swing.JFrame {
     private final DoctorJpaController doctorCtrl = new DoctorJpaController(emfac);
     private final AppointmentJpaController appointmentCtrl = new AppointmentJpaController(emfac);
     private final ImageJpaController imageCtrl = new ImageJpaController(emfac);
+    
+    private enum ItemType {PATIENT, DOCTOR, APPOINTMENT, IMAGE};
+    private ItemType itemType = null;
     
     /**
      * Creates new form MainWindow
@@ -177,6 +192,11 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        itemsList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                itemsListMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(itemsList);
 
         editPatientButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_edit_3029255.png"))); // NOI18N
@@ -455,6 +475,8 @@ public class MainWindow extends javax.swing.JFrame {
         disableButtons();
         editPatientButton.setEnabled(true);
         deletePatientButton.setEnabled(true);
+        
+        itemType = ItemType.PATIENT;
     }//GEN-LAST:event_listPatientsButtonActionPerformed
 
     /**
@@ -477,6 +499,8 @@ public class MainWindow extends javax.swing.JFrame {
         disableButtons();
         editDoctorButton.setEnabled(true);
         deleteDoctorButton.setEnabled(true);
+
+        itemType = ItemType.DOCTOR;
     }//GEN-LAST:event_listDoctorsButtonActionPerformed
 
     /**
@@ -575,6 +599,8 @@ public class MainWindow extends javax.swing.JFrame {
         disableButtons();
         editAppointmentButton.setEnabled(true);
         deleteAppointmentButton.setEnabled(true);
+        
+        itemType = ItemType.APPOINTMENT;
     }//GEN-LAST:event_listAppointmentsButtonActionPerformed
 
     private void editAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editAppointmentButtonActionPerformed
@@ -625,7 +651,46 @@ public class MainWindow extends javax.swing.JFrame {
         disableButtons();
         //editImageButton.setEnabled(true);
         //deleteImageButton.setEnabled(true);
+        
+        itemType = ItemType.IMAGE;
     }//GEN-LAST:event_listImagesButtonActionPerformed
+
+    private void itemsListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_itemsListMouseClicked
+        // Only react on double-click in the list of images
+        if( itemType == ItemType.IMAGE && evt.getClickCount() == 2 && itemsList.getSelectedIndex() >= 0 ){
+            EntityListModel<Image> model = (EntityListModel) itemsList.getModel();
+            Image selected = model.getList().get(itemsList.getSelectedIndex());
+
+            // Check if file already on disk:
+            String localpacspath = "C:\\Users\\Administrateur\\infoh400-labs2020\\src\\main\\resources\\localpacs";
+            File f = new File(localpacspath, selected.getInstanceuid());
+            
+            if( f.exists() && !f.isDirectory() ){
+                System.out.println("File already on disk, no C-MOVE required");
+            }
+            else{
+                try {
+                    AttributeList identifier = new AttributeList();
+                    { AttributeTag t = TagFromName.QueryRetrieveLevel; Attribute a = new CodeStringAttribute(t); a.addValue("STUDY"); identifier.put(t,a); }
+                    { AttributeTag t = TagFromName.StudyInstanceUID; Attribute a = new UniqueIdentifierAttribute(t); a.addValue(selected.getStudyuid()); identifier.put(t,a); }
+                    new MoveSOPClassSCU("localhost",4242,"ORTHANC","MOVESCU","STORESCP",SOPClass.StudyRootQueryRetrieveInformationModelMove,identifier);
+                    if( f.exists() && !f.isDirectory() ){
+                        System.out.println("File downloaded and available");
+                    }
+                    else{
+                        System.out.println("File unavailable.");
+                    }
+                }
+                catch (Exception ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+                    
+            DICOMViewerWindow dicomViewerPopup = new DICOMViewerWindow();
+            dicomViewerPopup.viewDICOM(f);
+            dicomViewerPopup.setVisible(true);
+        }
+    }//GEN-LAST:event_itemsListMouseClicked
        
     /**
      * @param args the command line arguments

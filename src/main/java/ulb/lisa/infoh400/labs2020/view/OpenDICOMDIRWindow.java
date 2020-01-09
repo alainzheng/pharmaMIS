@@ -11,8 +11,10 @@ import com.pixelmed.dicom.DicomDictionary;
 import com.pixelmed.dicom.DicomDirectory;
 import com.pixelmed.dicom.DicomDirectoryRecord;
 import com.pixelmed.dicom.DicomException;
+import com.pixelmed.dicom.SetOfDicomFiles;
 import com.pixelmed.dicom.TagFromName;
 import com.pixelmed.display.SourceImage;
+import com.pixelmed.network.StorageSOPClassSCU;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -234,6 +236,18 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         dicomAttributesTextPane.setText(returnText);
     }
     
+    private boolean sendImageToPACS(File imageFile){
+        // Send the file to the PACS
+        try {
+            new StorageSOPClassSCU("localhost",4242,"ORTHANC","HIS",0,0,0,imageFile.getAbsolutePath(),null,null,0);
+        }
+        catch (Exception ex) {
+            Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        return true;
+    }
+    
     private void saveToDatabaseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveToDatabaseButtonActionPerformed
         Object selectedObject = dicomdirTree.getLastSelectedPathComponent();
         DicomDirectoryRecord ddr = (DicomDirectoryRecord) selectedObject;
@@ -243,6 +257,8 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         if(al.get(TagFromName.DirectoryRecordType).getSingleStringValueOrEmptyString().equalsIgnoreCase("IMAGE")){
             String path = al.get(TagFromName.ReferencedFileID).getDelimitedStringValuesOrEmptyString();
             File imageFile = new File(dicomdirpath, path);
+            
+            sendImageToPACS(imageFile);
             
             AttributeList list = new AttributeList();
             try {
