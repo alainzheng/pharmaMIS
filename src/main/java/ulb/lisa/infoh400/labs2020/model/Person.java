@@ -21,6 +21,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -42,6 +43,11 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Person.findByDateofbirth", query = "SELECT p FROM Person p WHERE p.dateofbirth = :dateofbirth")})
 public class Person implements Serializable {
 
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idperson")
+    private Doctor doctor;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idperson")
+    private Patient patient;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,12 +65,6 @@ public class Person implements Serializable {
     private List<Doctor> doctorList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idperson")
     private List<Patient> patientList;
-    @JoinColumn(name = "iddoctor", referencedColumnName = "iddoctor")
-    @ManyToOne
-    private Doctor iddoctor;
-    @JoinColumn(name = "idpatient", referencedColumnName = "idpatient")
-    @ManyToOne
-    private Patient idpatient;
 
     public Person() {
     }
@@ -123,22 +123,6 @@ public class Person implements Serializable {
         this.patientList = patientList;
     }
 
-    public Doctor getIddoctor() {
-        return iddoctor;
-    }
-
-    public void setIddoctor(Doctor iddoctor) {
-        this.iddoctor = iddoctor;
-    }
-
-    public Patient getIdpatient() {
-        return idpatient;
-    }
-
-    public void setIdpatient(Patient idpatient) {
-        this.idpatient = idpatient;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -163,6 +147,22 @@ public class Person implements Serializable {
     public String toString() {
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
         return familyname.toUpperCase() + " " + firstname + " (" + fmt.format(dateofbirth) + ")";
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
     }
     
 }
