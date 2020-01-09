@@ -15,6 +15,8 @@ import com.pixelmed.dicom.TagFromName;
 import com.pixelmed.display.SourceImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
@@ -23,7 +25,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
+import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
+import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
+import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
 import ulb.lisa.infoh400.labs2020.model.Image;
+import ulb.lisa.infoh400.labs2020.model.Patient;
+import ulb.lisa.infoh400.labs2020.model.Person;
 
 /**
  *
@@ -33,9 +40,12 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     
     private final EntityManagerFactory emfac = Persistence.createEntityManagerFactory("infoh400_PU");
     private final ImageJpaController imageCtrl = new ImageJpaController(emfac);
+    private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
+    private final PersonJpaController personCtrl = new PersonJpaController(emfac);
     
     private String dicomdirpath = "";
     private DicomDirectory dicomdir = new DicomDirectory();
+    private SimpleDateFormat dicomDateFmt = new SimpleDateFormat("yyyyMMdd");
     
     /**
      * Creates new form OpenDICOMDIRWindow
@@ -172,7 +182,68 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_dicomdirTreeValueChanged
+    
+    private void saveImageToDatabase(AttributeList list){
+        String returnText = "";
+        
+        String instanceuid = list.get(TagFromName.SOPInstanceUID).getDelimitedStringValuesOrEmptyString();
+        String patientDicomIdentifier = list.get(TagFromName.PatientID).getDelimitedStringValuesOrEmptyString();
+        
+        // Check if instance uid already exists:
+        if( imageCtrl.instanceUIDAlreadyExists(instanceuid) ){
+            returnText += "Image already in database. Skipping.\n";
+        }
+        else {
+            // Check if it's a known patient
+            Patient patient = null;
+            Image imageWithSamePatient = imageCtrl.findImageWithPatientByPatientDicomIdentifier(patientDicomIdentifier);
+            if( imageWithSamePatient == null ){
+                // This means there are no image with the same patientid linked to a patient in the database.
+                // So we should first add the patient & person to the database.
+                patient = new Patient();
+                Person newPerson = new Person();
+                newPerson.setFamilyname(list.get(TagFromName.PatientName).getDelimitedStringValuesOrEmptyString());
+                String patientBirthDate = list.get(TagFromName.PatientBirthDate).getDelimitedStringValuesOrEmptyString();
+                if( !"".equals(patientBirthDate) ){
+                    try {
+                        newPerson.setDateofbirth(dicomDateFmt.parse(patientBirthDate));
+                    } catch (ParseException ex) {
+                        Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                personCtrl.create(newPerson);
+                patient.setIdperson(newPerson);
+                patient.setStatus("active");
+                patientCtrl.create(patient);
+                newPerson.setIdpatient(patient);
+                try {
+                    personCtrl.edit(newPerson);
+                } catch (NonexistentEntityException ex) {
+                    Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception ex) {
+                    Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
+                returnText += "Created new patient & person: " + patient;
+            }
+            else {
+                patient = imageWithSamePatient.getIdpatient();
+            }
+
+            // Create the Image
+            Image image = new Image();
+            image.setInstanceuid(instanceuid);
+            image.setPatientDicomIdentifier(patientDicomIdentifier);
+            image.setSeriesuid(list.get(TagFromName.SeriesInstanceUID).getDelimitedStringValuesOrEmptyString());
+            image.setStudyuid(list.get(TagFromName.StudyInstanceUID).getDelimitedStringValuesOrEmptyString());
+            image.setIdpatient(patient);
+            imageCtrl.create(image);
+            returnText += "Created new image: " + image;
+        }
+        
+        dicomAttributesTextPane.setText(returnText);
+    }
+    
     private void saveToDatabaseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveToDatabaseButtonActionPerformed
         Object selectedObject = dicomdirTree.getLastSelectedPathComponent();
         DicomDirectoryRecord ddr = (DicomDirectoryRecord) selectedObject;
@@ -185,14 +256,8 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
             AttributeList list = new AttributeList();
             try {
                 list.read(path);
-                Image image = new Image();
-                image.setInstanceuid(list.get(TagFromName.SOPInstanceUID).getDelimitedStringValuesOrEmptyString());
-                image.setSeriesuid(list.get(TagFromName.SeriesInstanceUID).getDelimitedStringValuesOrEmptyString());
-                image.setStudyuid(list.get(TagFromName.StudyInstanceUID).getDelimitedStringValuesOrEmptyString());
-                image.setPatientDicomIdentifier(list.get(TagFromName.PatientID).getDelimitedStringValuesOrEmptyString());
-                imageCtrl.create(image);
                 
-                dicomAttributesTextPane.setText("Saved image to database.");
+                saveImageToDatabase(list);
             } catch (IOException | DicomException ex) {
                 Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
             }

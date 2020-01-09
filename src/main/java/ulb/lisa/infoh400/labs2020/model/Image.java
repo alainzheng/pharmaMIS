@@ -32,7 +32,8 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Image.findByInstanceuid", query = "SELECT i FROM Image i WHERE i.instanceuid = :instanceuid"),
     @NamedQuery(name = "Image.findByStudyuid", query = "SELECT i FROM Image i WHERE i.studyuid = :studyuid"),
     @NamedQuery(name = "Image.findBySeriesuid", query = "SELECT i FROM Image i WHERE i.seriesuid = :seriesuid"),
-    @NamedQuery(name = "Image.findByPatientDicomIdentifier", query = "SELECT i FROM Image i WHERE i.patientDicomIdentifier = :patientDicomIdentifier")})
+    @NamedQuery(name = "Image.findByPatientDicomIdentifier", query = "SELECT i FROM Image i WHERE i.patientDicomIdentifier = :patientDicomIdentifier"),
+    @NamedQuery(name = "Image.findWithPatientByPatientDicomIdentifier", query = "SELECT i FROM Image i WHERE i.patientDicomIdentifier = :patientDicomIdentifier AND i.idpatient IS NOT NULL")})
 public class Image implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -158,7 +159,10 @@ public class Image implements Serializable {
 
     @Override
     public String toString() {
-        return "[" + patientDicomIdentifier + "] " + instanceuid;
+        if( idpatient == null )
+            return "[" + patientDicomIdentifier + "] " + instanceuid;
+        else
+            return "[" + idpatient.toString() + "] " + instanceuid;
     }
     
 }
