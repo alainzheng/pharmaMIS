@@ -5,15 +5,20 @@
  */
 package ulb.lisa.infoh400.labs2020.controller;
 
+import com.pixelmed.dicom.Attribute;
 import com.pixelmed.dicom.AttributeList;
+import com.pixelmed.dicom.AttributeTag;
+import com.pixelmed.dicom.CodeStringAttribute;
 import com.pixelmed.dicom.DicomException;
 import com.pixelmed.dicom.SOPClass;
 import com.pixelmed.dicom.SpecificCharacterSet;
 import com.pixelmed.dicom.StoredFilePathStrategy;
 import com.pixelmed.dicom.TagFromName;
+import com.pixelmed.dicom.UniqueIdentifierAttribute;
 import com.pixelmed.network.DicomNetworkException;
 import com.pixelmed.network.FindSOPClassSCU;
 import com.pixelmed.network.IdentifierHandler;
+import com.pixelmed.network.MoveSOPClassSCU;
 import com.pixelmed.network.ReceivedObjectHandler;
 import com.pixelmed.network.StorageSOPClassSCPDispatcher;
 import java.io.File;
@@ -23,6 +28,7 @@ import java.util.logging.Logger;
 import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.model.Patient;
 import ulb.lisa.infoh400.labs2020.view.AddPatientWindow;
+import ulb.lisa.infoh400.labs2020.view.MainWindow;
 
 /**
  *
@@ -60,6 +66,18 @@ public class DICOMServices {
     public void stop(){
         dispatcher.shutdown();
         listening = false;
+    }
+
+    public void doCMove(String studyUID) {
+        try {
+            AttributeList identifier = new AttributeList();
+            { AttributeTag t = TagFromName.QueryRetrieveLevel; Attribute a = new CodeStringAttribute(t); a.addValue("STUDY"); identifier.put(t,a); }
+            { AttributeTag t = TagFromName.StudyInstanceUID; Attribute a = new UniqueIdentifierAttribute(t); a.addValue(studyUID); identifier.put(t,a); }
+            new MoveSOPClassSCU(GlobalConfig.ORTHANC_HOST,GlobalConfig.ORTHANC_PORT,GlobalConfig.ORTHANC_AET,"MOVESCU","STORESCP",SOPClass.StudyRootQueryRetrieveInformationModelMove,identifier);
+        }
+        catch (Exception ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     private class StoreObjectHandler extends ReceivedObjectHandler {
