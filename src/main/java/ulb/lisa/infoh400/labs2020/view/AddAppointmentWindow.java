@@ -6,7 +6,6 @@
 package ulb.lisa.infoh400.labs2020.view;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -15,6 +14,7 @@ import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.swing.DefaultComboBoxModel;
+import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.controller.AppointmentJpaController;
 import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
@@ -36,10 +36,6 @@ public class AddAppointmentWindow extends javax.swing.JFrame {
     private final List<Doctor> doctors = doctorCtrl.findDoctorEntities();
     private final List<Patient> patients = patientCtrl.findPatientEntities();
     
-    private final SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd");
-    private final SimpleDateFormat timeFmt = new SimpleDateFormat("H:mm");
-    private final SimpleDateFormat dtFmt = new SimpleDateFormat("yyyy-MM-dd H:mm");
-    
     private Appointment appointment = null;
     
     /**
@@ -56,8 +52,8 @@ public class AddAppointmentWindow extends javax.swing.JFrame {
         
         // Setup date & time with current date
         Date now = new Date();
-        dateTextField.setText(dateFmt.format(now));
-        timeTextField.setText(timeFmt.format(now));
+        dateTextField.setText(GlobalConfig.dateFmt.format(now));
+        timeTextField.setText(GlobalConfig.timeFmt.format(now));
     }
 
     /**
@@ -207,8 +203,8 @@ public class AddAppointmentWindow extends javax.swing.JFrame {
         doctorComboBox.setSelectedIndex(doctors.indexOf(appointment.getIddoctor()));
         patientComboBox.setSelectedIndex(patients.indexOf(appointment.getIdpatient()));
         
-        dateTextField.setText(dateFmt.format(appointment.getAppointmenttime()));
-        timeTextField.setText(timeFmt.format(appointment.getAppointmenttime()));
+        dateTextField.setText(GlobalConfig.dateFmt.format(appointment.getAppointmenttime()));
+        timeTextField.setText(GlobalConfig.timeFmt.format(appointment.getAppointmenttime()));
         
         reasonTextArea.setText(appointment.getReason());
         priceTextField.setText(String.valueOf(appointment.getPrice()));
@@ -235,7 +231,7 @@ public class AddAppointmentWindow extends javax.swing.JFrame {
         try {
             // Get other fields:
             String formattedDateTime = dateTextField.getText() + " " + timeTextField.getText();
-            appointment.setAppointmenttime(dtFmt.parse(formattedDateTime));
+            appointment.setAppointmenttime(GlobalConfig.dateTimeFmt.parse(formattedDateTime));
         } catch (ParseException ex) {
             Logger.getLogger(AddAppointmentWindow.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.model.Person;
 
 /**
@@ -18,7 +19,6 @@ import ulb.lisa.infoh400.labs2020.model.Person;
 public class AddPersonPanel extends javax.swing.JPanel {
     
     private Person person = null;
-    private final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
     
     /**
      * Creates new form AddPersonPanel
@@ -36,7 +36,7 @@ public class AddPersonPanel extends javax.swing.JPanel {
         
         familynameTextField.setText(person.getFamilyname());
         firstnameTextField.setText(person.getFirstname());
-        dateofbirthTextField.setText(fmt.format(person.getDateofbirth()));
+        dateofbirthTextField.setText(GlobalConfig.dateFmt.format(person.getDateofbirth()));
     }
     
     /**
@@ -51,7 +51,7 @@ public class AddPersonPanel extends javax.swing.JPanel {
         person.setFamilyname(familynameTextField.getText());
         person.setFirstname(firstnameTextField.getText());
         try {
-            person.setDateofbirth(fmt.parse(dateofbirthTextField.getText()));
+            person.setDateofbirth(GlobalConfig.dateFmt.parse(dateofbirthTextField.getText()));
         } catch (ParseException ex) {
             Logger.getLogger(AddPersonPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
