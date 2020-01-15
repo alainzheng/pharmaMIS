@@ -5,6 +5,7 @@
  */
 package ulb.lisa.infoh400.labs2020.view;
 
+import ulb.lisa.infoh400.labs2020.controller.HL7Services;
 import ulb.lisa.infoh400.labs2020.model.Patient;
 
 /**
@@ -17,6 +18,7 @@ public class HL7SendWindow extends javax.swing.JFrame {
     
     /**
      * Creates new form HL7SendWindow
+     * @param pat
      */
     public HL7SendWindow(Patient pat) {
         patient = pat;
@@ -60,6 +62,11 @@ public class HL7SendWindow extends javax.swing.JFrame {
         hl7PortTextField.setText("54321");
 
         hl7SendButton.setText("Send");
+        hl7SendButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hl7SendButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -100,6 +107,15 @@ public class HL7SendWindow extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void hl7SendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hl7SendButtonActionPerformed
+        if(HL7Services.sendADT_A01(patient, hl7HostTextField.getText(), Integer.valueOf(hl7PortTextField.getText()))){
+            dispose();
+        }
+        else{
+            selectedPatientLabel.setText("ERROR: couldn't send patient information.");
+        }
+    }//GEN-LAST:event_hl7SendButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField hl7HostTextField;

@@ -23,5 +23,13 @@ public class GlobalConfig {
     public static SimpleDateFormat timeFmt = new SimpleDateFormat("H:mm");
     public static SimpleDateFormat dateTimeFmt = new SimpleDateFormat("yyyy-MM-dd H:mm");
     public static SimpleDateFormat dcmDateFmt = new SimpleDateFormat("yyyyMMdd");
+
+    private static int nextADTMessageID = 0;
+    public static boolean HL7_TLS = false;
+    
+    public static int getNextADTMessageID() {
+        nextADTMessageID += 1;
+        return nextADTMessageID;
+    }
     
 }

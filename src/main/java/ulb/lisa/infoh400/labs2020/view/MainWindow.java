@@ -18,6 +18,7 @@ import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.controller.AppointmentJpaController;
 import ulb.lisa.infoh400.labs2020.controller.DICOMServices;
 import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
+import ulb.lisa.infoh400.labs2020.controller.HL7Services;
 import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.IllegalOrphanException;
@@ -88,6 +89,7 @@ public class MainWindow extends javax.swing.JFrame {
         deleteAppointmentButton = new javax.swing.JButton();
         deleteDoctorButton = new javax.swing.JButton();
         dicomServerButton = new javax.swing.JButton();
+        statusBarLabel = new javax.swing.JLabel();
 
         doctorTextLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         doctorTextLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -248,13 +250,12 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        statusBarLabel.setFont(new java.awt.Font("Tahoma", 2, 11)); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(titleLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 912, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(150, 150, 150)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -309,8 +310,9 @@ public class MainWindow extends javax.swing.JFrame {
                                 .addGap(60, 60, 60)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(ImageImageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(ImageTextLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(ImageTextLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))))))
+            .addComponent(titleLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 912, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(statusBarLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 912, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -362,8 +364,9 @@ public class MainWindow extends javax.swing.JFrame {
                             .addComponent(deleteAppointmentButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(dicomServerButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 226, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(statusBarLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -648,39 +651,52 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void itemsListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_itemsListMouseClicked
         // Only react on double-click in the list of images
-        if( itemType == ItemType.IMAGE && evt.getClickCount() == 2 && itemsList.getSelectedIndex() >= 0 ){
-            EntityListModel<Image> model = (EntityListModel) itemsList.getModel();
-            Image selected = model.getList().get(itemsList.getSelectedIndex());
+        if( evt.getClickCount() == 2 && itemsList.getSelectedIndex() >= 0 ){
+            if(itemType == ItemType.IMAGE) {
+                EntityListModel<Image> model = (EntityListModel) itemsList.getModel();
+                Image selected = model.getList().get(itemsList.getSelectedIndex());
 
-            // Check if file already on disk:
-            String localpacspath = GlobalConfig.LOCAL_DICOM_REPOSITORY;
-            File f = new File(localpacspath, selected.getInstanceuid());
-            
-            if( f.exists() && !f.isDirectory() ){
-                System.out.println("File already on disk, no C-MOVE required");
-            }
-            else {
-                if( !dicomServices.isListening() ){
-                    System.out.println("Cannot receive DICOM files. Server is not running.");
-                    return;
-                }
-                
-                dicomServices.doCMove(selected.getStudyuid());
-                
+                // Check if file already on disk:
+                String localpacspath = GlobalConfig.LOCAL_DICOM_REPOSITORY;
+                File f = new File(localpacspath, selected.getInstanceuid());
+
                 if( f.exists() && !f.isDirectory() ){
-                    System.out.println("File downloaded and available");
+                    setStatus("File already on disk, no C-MOVE required");
                 }
-                else{
-                    System.out.println("File unavailable.");
+                else {
+                    if( !dicomServices.isListening() ){
+                        setStatus("Cannot receive DICOM files. Server is not running.");
+                        return;
+                    }
+
+                    dicomServices.doCMove(selected.getStudyuid());
+
+                    if( f.exists() && !f.isDirectory() ){
+                        setStatus("File downloaded and available");
+                    }
+                    else{
+                        setStatus("File unavailable.");
+                    }
                 }
+
+                DICOMViewerWindow dicomViewerPopup = new DICOMViewerWindow();
+                dicomViewerPopup.viewDICOM(f);
+                dicomViewerPopup.setVisible(true);
             }
-                    
-            DICOMViewerWindow dicomViewerPopup = new DICOMViewerWindow();
-            dicomViewerPopup.viewDICOM(f);
-            dicomViewerPopup.setVisible(true);
+            else if( itemType == ItemType.PATIENT ){
+                EntityListModel<Patient> model = (EntityListModel) itemsList.getModel();
+                Patient selected = model.getList().get(itemsList.getSelectedIndex());
+                
+                HL7SendWindow hl7Popup = new HL7SendWindow(selected);
+                hl7Popup.setVisible(true);
+            }
         }
     }//GEN-LAST:event_itemsListMouseClicked
-
+    
+    private void setStatus(String status) {
+        statusBarLabel.setText(status);
+    }
+    
     private void dicomServerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dicomServerButtonActionPerformed
         if( !dicomServices.isListening() ){
             dicomServices.start();
@@ -757,6 +773,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JButton listPatientsButton;
     private javax.swing.JLabel patientImageLabel;
     private javax.swing.JLabel patientTextLabel;
+    private javax.swing.JLabel statusBarLabel;
     private javax.swing.JLabel titleLabel;
     // End of variables declaration//GEN-END:variables
 }
