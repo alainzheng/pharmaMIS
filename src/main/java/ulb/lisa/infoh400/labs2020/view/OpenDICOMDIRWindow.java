@@ -5,7 +5,30 @@
  */
 package ulb.lisa.infoh400.labs2020.view;
 
+import com.pixelmed.dicom.AttributeList;
+import com.pixelmed.dicom.AttributeTag;
+import com.pixelmed.dicom.DicomDictionary;
 import com.pixelmed.dicom.DicomDirectory;
+import com.pixelmed.dicom.DicomDirectoryRecord;
+import com.pixelmed.dicom.DicomException;
+import com.pixelmed.dicom.TagFromName;
+import com.pixelmed.display.SourceImage;
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
+import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
+import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
+import ulb.lisa.infoh400.labs2020.model.Image;
+import ulb.lisa.infoh400.labs2020.model.Patient;
+import ulb.lisa.infoh400.labs2020.model.Person;
 
 /**
  *
@@ -13,13 +36,20 @@ import com.pixelmed.dicom.DicomDirectory;
  */
 public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     
-    private DicomDirectory dicomdir = null;
+    private final EntityManagerFactory emfac = Persistence.createEntityManagerFactory("infoh400_PU");
+    private final ImageJpaController imageCtrl = new ImageJpaController(emfac);
+    private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
+    private final PersonJpaController personCtrl = new PersonJpaController(emfac);
+    
+    private String dicomdirpath = "";
+    private DicomDirectory dicomdir = new DicomDirectory();
+    private final SimpleDateFormat dicomDateFmt = new SimpleDateFormat("yyyyMMdd");
     
     /**
      * Creates new form OpenDICOMDIRWindow
      */
     public OpenDICOMDIRWindow() {
-        initComponents();
+        initComponents();       
     }
 
     /**
@@ -38,16 +68,27 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         dicomAttributesTextPane = new javax.swing.JTextPane();
         imageViewerLabel = new javax.swing.JLabel();
+        saveToDatabaseButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         selectDICOMDIRButton.setText("Select DICOMDIR");
+        selectDICOMDIRButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectDICOMDIRButtonActionPerformed(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Add Image");
 
         dicomdirTree.setModel(dicomdir);
+        dicomdirTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                dicomdirTreeValueChanged(evt);
+            }
+        });
         jScrollPane1.setViewportView(dicomdirTree);
 
         jScrollPane2.setViewportView(dicomAttributesTextPane);
@@ -58,6 +99,13 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         imageViewerLabel.setText("Viewer");
         imageViewerLabel.setOpaque(true);
 
+        saveToDatabaseButton.setText("Save to Database");
+        saveToDatabaseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveToDatabaseButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -66,15 +114,18 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(selectDICOMDIRButton)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(imageViewerLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 435, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane2))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(selectDICOMDIRButton)
+                                .addGap(18, 18, 18)
+                                .addComponent(saveToDatabaseButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(imageViewerLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 435, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -82,7 +133,9 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(selectDICOMDIRButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(selectDICOMDIRButton)
+                    .addComponent(saveToDatabaseButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(imageViewerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -95,6 +148,135 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void dicomdirTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_dicomdirTreeValueChanged
+        Object selectedObject = dicomdirTree.getLastSelectedPathComponent();
+        DicomDirectoryRecord ddr = (DicomDirectoryRecord) selectedObject;
+        if( ddr == null ) return;
+        
+        AttributeList al = ddr.getAttributeList();
+        if( al == null ) return;
+        String allAttributes = "";
+        DicomDictionary dicomDic = new DicomDictionary();
+        for( AttributeTag t : al.keySet() ){
+            allAttributes +=  dicomDic.getFullNameFromTag(t) + " :: " + al.get(t).getDelimitedStringValuesOrEmptyString() + "\n";
+        }
+        dicomAttributesTextPane.setText(allAttributes);
+        
+        if(al.get(TagFromName.DirectoryRecordType).getSingleStringValueOrEmptyString().equalsIgnoreCase("IMAGE")){
+            String path = al.get(TagFromName.ReferencedFileID).getDelimitedStringValuesOrEmptyString();
+            File imageFile = new File(dicomdirpath, path);
+            try {
+                SourceImage sImg = new SourceImage(imageFile.getAbsolutePath());
+                ImageIcon icon = new ImageIcon(sImg.getBufferedImage()); // converts to Swing image
+                imageViewerLabel.setIcon(icon); // Shows image in a jLabel
+                imageViewerLabel.setText("");
+            } catch (IOException | DicomException ex) {
+                Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else{
+            imageViewerLabel.setIcon(null);
+            imageViewerLabel.setText("Viewer");
+        }
+
+    }//GEN-LAST:event_dicomdirTreeValueChanged
+    
+    private void saveImageToDatabase(AttributeList list){
+        String returnText = "";
+        
+        String instanceuid = list.get(TagFromName.SOPInstanceUID).getDelimitedStringValuesOrEmptyString();
+        String patientDicomIdentifier = list.get(TagFromName.PatientID).getDelimitedStringValuesOrEmptyString();
+        
+        // Check if instance uid already exists:
+        if( imageCtrl.instanceUIDAlreadyExists(instanceuid) ){
+            returnText += "Image already in database. Skipping.\n";
+        }
+        else {
+            // Check if it's a known patient
+            Patient patient = null;
+            Image imageWithSamePatient = imageCtrl.findImageWithPatientByPatientDicomIdentifier(patientDicomIdentifier);
+            if( imageWithSamePatient == null ){
+                // This means there are no image with the same patientid linked to a patient in the database.
+                // So we should first add the patient & person to the database.
+                patient = new Patient();
+                Person newPerson = new Person();
+                newPerson.setFamilyname(list.get(TagFromName.PatientName).getDelimitedStringValuesOrEmptyString());
+                String patientBirthDate = list.get(TagFromName.PatientBirthDate).getDelimitedStringValuesOrEmptyString();
+                if( !"".equals(patientBirthDate) ){
+                    try {
+                        newPerson.setDateofbirth(dicomDateFmt.parse(patientBirthDate));
+                    } catch (ParseException ex) {
+                        Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                personCtrl.create(newPerson);
+                patient.setIdperson(newPerson);
+                patient.setStatus("active");
+                patientCtrl.create(patient);
+                
+                returnText += "Created new patient & person: " + patient;
+            }
+            else {
+                patient = imageWithSamePatient.getIdpatient();
+            }
+
+            // Create the Image
+            Image image = new Image();
+            image.setInstanceuid(instanceuid);
+            image.setPatientDicomIdentifier(patientDicomIdentifier);
+            image.setSeriesuid(list.get(TagFromName.SeriesInstanceUID).getDelimitedStringValuesOrEmptyString());
+            image.setStudyuid(list.get(TagFromName.StudyInstanceUID).getDelimitedStringValuesOrEmptyString());
+            image.setIdpatient(patient);
+            imageCtrl.create(image);
+            returnText += "Created new image: " + image;
+        }
+        
+        dicomAttributesTextPane.setText(returnText);
+    }
+    
+    private void saveToDatabaseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveToDatabaseButtonActionPerformed
+        Object selectedObject = dicomdirTree.getLastSelectedPathComponent();
+        DicomDirectoryRecord ddr = (DicomDirectoryRecord) selectedObject;
+        if( ddr == null ) return;
+        
+        AttributeList al = ddr.getAttributeList();
+        if(al.get(TagFromName.DirectoryRecordType).getSingleStringValueOrEmptyString().equalsIgnoreCase("IMAGE")){
+            String path = al.get(TagFromName.ReferencedFileID).getDelimitedStringValuesOrEmptyString();
+            File imageFile = new File(dicomdirpath, path);
+            
+            AttributeList list = new AttributeList();
+            try {
+                list.read(imageFile.getAbsolutePath());
+                
+                saveImageToDatabase(list);
+            } catch (IOException | DicomException ex) {
+                Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_saveToDatabaseButtonActionPerformed
+
+    private void displayDICOMDIR(File f){
+        try {
+            AttributeList list = new AttributeList();
+            list.read(f);
+            dicomdir = new DicomDirectory(list);
+            dicomdirTree.setModel(dicomdir);            
+        } catch (IOException | DicomException e) {
+            e.printStackTrace(); //in real life, do something about this exception
+        }
+    }
+    
+    private void selectDICOMDIRButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectDICOMDIRButtonActionPerformed
+        JFileChooser jfc = new JFileChooser();
+        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int returnValue = jfc.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = jfc.getSelectedFile();
+                dicomdirpath = selectedFile.getParent();
+                displayDICOMDIR(selectedFile);
+        }
+    }//GEN-LAST:event_selectDICOMDIRButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextPane dicomAttributesTextPane;
     private javax.swing.JTree dicomdirTree;
@@ -102,6 +284,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton saveToDatabaseButton;
     private javax.swing.JButton selectDICOMDIRButton;
     // End of variables declaration//GEN-END:variables
 }

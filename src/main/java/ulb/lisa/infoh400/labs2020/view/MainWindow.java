@@ -14,11 +14,13 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import ulb.lisa.infoh400.labs2020.controller.AppointmentJpaController;
 import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
+import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.IllegalOrphanException;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
 import ulb.lisa.infoh400.labs2020.model.Appointment;
 import ulb.lisa.infoh400.labs2020.model.Doctor;
+import ulb.lisa.infoh400.labs2020.model.Image;
 import ulb.lisa.infoh400.labs2020.model.Patient;
 
 /**
@@ -31,6 +33,7 @@ public class MainWindow extends javax.swing.JFrame {
     private final PatientJpaController patientCtrl = new PatientJpaController(emfac);
     private final DoctorJpaController doctorCtrl = new DoctorJpaController(emfac);
     private final AppointmentJpaController appointmentCtrl = new AppointmentJpaController(emfac);
+    private final ImageJpaController imageCtrl = new ImageJpaController(emfac);
     
     /**
      * Creates new form MainWindow
@@ -140,7 +143,11 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
         listImagesButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_List_103471.png"))); // NOI18N
-        listImagesButton.setEnabled(false);
+        listImagesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                listImagesButtonActionPerformed(evt);
+            }
+        });
 
         addPatientButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_add_3029252.png"))); // NOI18N
         addPatientButton.addActionListener(new java.awt.event.ActionListener() {
@@ -404,6 +411,13 @@ public class MainWindow extends javax.swing.JFrame {
     private void addImageButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addImageButtonActionPerformed
         OpenDICOMDIRWindow imageAddPopup = new OpenDICOMDIRWindow();
         imageAddPopup.setVisible(true);
+        
+        imageAddPopup.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent evt){
+                refreshImageList();
+            }
+        });
     }//GEN-LAST:event_addImageButtonActionPerformed
     
     /**
@@ -597,6 +611,21 @@ public class MainWindow extends javax.swing.JFrame {
         
         refreshAppointmentList();
     }//GEN-LAST:event_deleteAppointmentButtonActionPerformed
+
+    private void refreshImageList() {
+        List images = imageCtrl.findImageEntities();
+        EntityListModel<Image> model = new EntityListModel(images);
+        
+        itemsList.setModel(model);
+    }
+    
+    private void listImagesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listImagesButtonActionPerformed
+        refreshImageList();
+        
+        disableButtons();
+        //editImageButton.setEnabled(true);
+        //deleteImageButton.setEnabled(true);
+    }//GEN-LAST:event_listImagesButtonActionPerformed
        
     /**
      * @param args the command line arguments

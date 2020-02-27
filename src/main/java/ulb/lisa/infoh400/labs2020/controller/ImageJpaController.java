@@ -11,6 +11,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
@@ -208,6 +210,22 @@ public class ImageJpaController implements Serializable {
         } finally {
             em.close();
         }
+    }
+    
+    public Image findImageWithPatientByPatientDicomIdentifier(String patientDicomIdentifier){
+        EntityManager em = getEntityManager();
+        List<Image> results = em.createNamedQuery("Image.findWithPatientByPatientDicomIdentifier").setParameter("patientDicomIdentifier", patientDicomIdentifier).getResultList();
+        if( results.isEmpty() ){
+            return null;
+        }
+        else{
+            return results.get(0);
+        }
+    }
+    
+    public boolean instanceUIDAlreadyExists(String instanceuid){
+        EntityManager em = getEntityManager();
+        return !em.createNamedQuery("Image.findByInstanceuid").setParameter("instanceuid", instanceuid).getResultList().isEmpty();
     }
 
     public int getImageCount() {
