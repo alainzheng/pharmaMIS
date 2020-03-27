@@ -45,7 +45,6 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
     
     private String dicomdirpath = "";
     private DicomDirectory dicomdir = new DicomDirectory();
-    private final SimpleDateFormat dicomDateFmt = new SimpleDateFormat("yyyyMMdd");
     
     /**
      * Creates new form OpenDICOMDIRWindow
@@ -206,7 +205,7 @@ public class OpenDICOMDIRWindow extends javax.swing.JFrame {
                 String patientBirthDate = list.get(TagFromName.PatientBirthDate).getDelimitedStringValuesOrEmptyString();
                 if( !"".equals(patientBirthDate) ){
                     try {
-                        newPerson.setDateofbirth(dicomDateFmt.parse(patientBirthDate));
+                        newPerson.setDateofbirth(GlobalConfig.dcmDateFmt.parse(patientBirthDate));
                     } catch (ParseException ex) {
                         Logger.getLogger(OpenDICOMDIRWindow.class.getName()).log(Level.SEVERE, null, ex);
                     }

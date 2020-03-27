@@ -5,14 +5,7 @@
  */
 package ulb.lisa.infoh400.labs2020.view;
 
-import com.pixelmed.dicom.Attribute;
-import com.pixelmed.dicom.AttributeList;
-import com.pixelmed.dicom.AttributeTag;
-import com.pixelmed.dicom.CodeStringAttribute;
-import com.pixelmed.dicom.SOPClass;
-import com.pixelmed.dicom.TagFromName;
-import com.pixelmed.dicom.UniqueIdentifierAttribute;
-import com.pixelmed.network.MoveSOPClassSCU;
+import java.awt.Color;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -23,6 +16,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import ulb.lisa.infoh400.labs2020.GlobalConfig;
 import ulb.lisa.infoh400.labs2020.controller.AppointmentJpaController;
+import ulb.lisa.infoh400.labs2020.controller.DICOMServices;
 import ulb.lisa.infoh400.labs2020.controller.DoctorJpaController;
 import ulb.lisa.infoh400.labs2020.controller.ImageJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
@@ -47,6 +41,8 @@ public class MainWindow extends javax.swing.JFrame {
     
     private enum ItemType {PATIENT, DOCTOR, APPOINTMENT, IMAGE};
     private ItemType itemType = null;
+    
+    private DICOMServices dicomServices = new DICOMServices();
     
     /**
      * Creates new form MainWindow
@@ -88,11 +84,10 @@ public class MainWindow extends javax.swing.JFrame {
         editPatientButton = new javax.swing.JButton();
         editDoctorButton = new javax.swing.JButton();
         editAppointmentButton = new javax.swing.JButton();
-        editImageButton = new javax.swing.JButton();
         deletePatientButton = new javax.swing.JButton();
         deleteAppointmentButton = new javax.swing.JButton();
         deleteDoctorButton = new javax.swing.JButton();
-        deleteImageButton = new javax.swing.JButton();
+        dicomServerButton = new javax.swing.JButton();
 
         doctorTextLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         doctorTextLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -221,9 +216,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        editImageButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_edit_3029255.png"))); // NOI18N
-        editImageButton.setEnabled(false);
-
         deletePatientButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_Delete_756859.png"))); // NOI18N
         deletePatientButton.setEnabled(false);
         deletePatientButton.addActionListener(new java.awt.event.ActionListener() {
@@ -248,8 +240,13 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        deleteImageButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/noun_Delete_756859.png"))); // NOI18N
-        deleteImageButton.setEnabled(false);
+        dicomServerButton.setBackground(new java.awt.Color(255, 0, 0));
+        dicomServerButton.setText("Server (Stopped)");
+        dicomServerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dicomServerButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -300,12 +297,11 @@ public class MainWindow extends javax.swing.JFrame {
                                     .addComponent(deleteAppointmentButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(52, 52, 52)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(listImagesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(editImageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(addImageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(deleteImageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(listImagesButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(addImageButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(dicomServerButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(AppointmentImageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -361,11 +357,10 @@ public class MainWindow extends javax.swing.JFrame {
                             .addComponent(listImagesButton)
                             .addComponent(addImageButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(editAppointmentButton)
-                            .addComponent(deleteAppointmentButton)
-                            .addComponent(editImageButton, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(deleteImageButton, javax.swing.GroupLayout.Alignment.LEADING))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(editAppointmentButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(deleteAppointmentButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(dicomServerButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 226, Short.MAX_VALUE)
                 .addContainerGap())
@@ -445,12 +440,10 @@ public class MainWindow extends javax.swing.JFrame {
         editPatientButton.setEnabled(false);
         editDoctorButton.setEnabled(false);
         editAppointmentButton.setEnabled(false);
-        editImageButton.setEnabled(false);
         
         deletePatientButton.setEnabled(false);
         deleteDoctorButton.setEnabled(false);
         deleteAppointmentButton.setEnabled(false);
-        deleteImageButton.setEnabled(false);
     }
     
     /**
@@ -666,21 +659,19 @@ public class MainWindow extends javax.swing.JFrame {
             if( f.exists() && !f.isDirectory() ){
                 System.out.println("File already on disk, no C-MOVE required");
             }
-            else{
-                try {
-                    AttributeList identifier = new AttributeList();
-                    { AttributeTag t = TagFromName.QueryRetrieveLevel; Attribute a = new CodeStringAttribute(t); a.addValue("STUDY"); identifier.put(t,a); }
-                    { AttributeTag t = TagFromName.StudyInstanceUID; Attribute a = new UniqueIdentifierAttribute(t); a.addValue(selected.getStudyuid()); identifier.put(t,a); }
-                    new MoveSOPClassSCU(GlobalConfig.ORTHANC_HOST,GlobalConfig.ORTHANC_PORT,GlobalConfig.ORTHANC_AET,"MOVESCU","STORESCP",SOPClass.StudyRootQueryRetrieveInformationModelMove,identifier);
-                    if( f.exists() && !f.isDirectory() ){
-                        System.out.println("File downloaded and available");
-                    }
-                    else{
-                        System.out.println("File unavailable.");
-                    }
+            else {
+                if( !dicomServices.isListening() ){
+                    System.out.println("Cannot receive DICOM files. Server is not running.");
+                    return;
                 }
-                catch (Exception ex) {
-                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                
+                dicomServices.doCMove(selected.getStudyuid());
+                
+                if( f.exists() && !f.isDirectory() ){
+                    System.out.println("File downloaded and available");
+                }
+                else{
+                    System.out.println("File unavailable.");
                 }
             }
                     
@@ -689,6 +680,19 @@ public class MainWindow extends javax.swing.JFrame {
             dicomViewerPopup.setVisible(true);
         }
     }//GEN-LAST:event_itemsListMouseClicked
+
+    private void dicomServerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dicomServerButtonActionPerformed
+        if( !dicomServices.isListening() ){
+            dicomServices.start();
+            dicomServerButton.setBackground(Color.green);
+            dicomServerButton.setText("Server (running)");
+        }
+        else {
+            dicomServices.stop();
+            dicomServerButton.setBackground(Color.red);
+            dicomServerButton.setText("Server (stopped)");            
+        }
+    }//GEN-LAST:event_dicomServerButtonActionPerformed
        
     /**
      * @param args the command line arguments
@@ -736,15 +740,14 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JLabel appointmentTextLabel;
     private javax.swing.JButton deleteAppointmentButton;
     private javax.swing.JButton deleteDoctorButton;
-    private javax.swing.JButton deleteImageButton;
     private javax.swing.JButton deletePatientButton;
+    private javax.swing.JButton dicomServerButton;
     private javax.swing.JLabel doctorImageLabel;
     private javax.swing.JLabel doctorImageLabel1;
     private javax.swing.JLabel doctorTextLabel;
     private javax.swing.JLabel doctorTextLabel1;
     private javax.swing.JButton editAppointmentButton;
     private javax.swing.JButton editDoctorButton;
-    private javax.swing.JButton editImageButton;
     private javax.swing.JButton editPatientButton;
     private javax.swing.JList<String> itemsList;
     private javax.swing.JScrollPane jScrollPane1;

@@ -5,10 +5,13 @@
  */
 package ulb.lisa.infoh400.labs2020.view;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import ulb.lisa.infoh400.labs2020.controller.DICOMServices;
 import ulb.lisa.infoh400.labs2020.controller.PatientJpaController;
 import ulb.lisa.infoh400.labs2020.controller.PersonJpaController;
 import ulb.lisa.infoh400.labs2020.controller.exceptions.NonexistentEntityException;
@@ -85,6 +88,9 @@ public class AddPatientWindow extends javax.swing.JFrame {
         cancelButton = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         statusComboBox = new javax.swing.JComboBox<>();
+        cFindButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        cFindResultTextePane = new javax.swing.JTextPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -112,6 +118,16 @@ public class AddPatientWindow extends javax.swing.JFrame {
 
         statusComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Active", "Inactive", "Banned" }));
 
+        cFindButton.setText("Find in PACS");
+        cFindButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cFindButtonActionPerformed(evt);
+            }
+        });
+
+        cFindResultTextePane.setEnabled(false);
+        jScrollPane1.setViewportView(cFindResultTextePane);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -137,22 +153,32 @@ public class AddPatientWindow extends javax.swing.JFrame {
                                 .addComponent(jLabel3)
                                 .addGap(40, 40, 40)
                                 .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(178, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cFindButton)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(addPersonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(phonenumberTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(addPersonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(phonenumberTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3)
+                            .addComponent(statusComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cFindButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1)))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveButton)
@@ -201,12 +227,39 @@ public class AddPatientWindow extends javax.swing.JFrame {
         this.dispose();        
     }//GEN-LAST:event_saveButtonActionPerformed
 
+    private void cFindButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cFindButtonActionPerformed
+        updatePatient();
+        
+        DICOMServices.doCFind(patient, new CFindResultDisplayer());
+        if( cFindResultTextePane.getText().isEmpty() ){
+            cFindResultTextePane.setText("No studies in PACS");
+        }
+    }//GEN-LAST:event_cFindButtonActionPerformed
+
+    public class CFindResultDisplayer {
+        
+        private List<String> studyDates = new ArrayList();
+        
+        public void addResult(String result){
+            studyDates.add(result);
+            String text = studyDates.size() + " studies :\n";
+            for( String sd : studyDates ){
+                text += sd + "\n";
+            }
+            cFindResultTextePane.setText(text);
+        }
+        
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private ulb.lisa.infoh400.labs2020.view.AddPersonPanel addPersonPanel;
+    private javax.swing.JButton cFindButton;
+    private javax.swing.JTextPane cFindResultTextePane;
     private javax.swing.JButton cancelButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField phonenumberTextField;
     private javax.swing.JButton saveButton;
     private javax.swing.JComboBox<String> statusComboBox;
