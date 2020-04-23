@@ -10,9 +10,9 @@
     <class>ulb.lisa.infoh400.labs2020.model.Appointment</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/infoh400?zeroDateTimeBehavior=convertToNull&amp;serverTimezone=Europe/Brussels"/>
-      <property name="javax.persistence.jdbc.user" value="afoucart"/>
+      <property name="javax.persistence.jdbc.user" value="infoh400"/>
       <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
-      <property name="javax.persistence.jdbc.password" value="1234"/>
+      <property name="javax.persistence.jdbc.password" value="student400"/>
     </properties>
   </persistence-unit>
 </persistence>
